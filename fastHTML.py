@@ -30,6 +30,7 @@ popup_style = Style("""
             }
         """)
 
+#แถบเมนูที่แสดงบนหน้าเว็บ
 def navigation_bar():
     if not login:
         return Container(Nav(
@@ -51,7 +52,7 @@ def navigation_bar():
             Ul(
                 Li(H5(A("หน้าแรก",href="/"))),
                 Li(H5(A("ประวัติการซื้อ",href="/booking"))),
-                Li(H5(A("ยกเลิกตั๋วโดยสาร"))),
+                Li(H5(A("ยกเลิกตั๋วโดยสาร",href="/cancel"))),
                 Li(H5(A("ศูนย์ความช่วยเหลือ"))),
                 style="text-align:left;"
             ),
@@ -142,7 +143,7 @@ def post(email:str,password:str, phone_number:str , name:str):
     print("Register Sucess")
     return  home()
 
-
+#หน้า home
 @rt('/')
 def home():
     seat_id_list.clear()
@@ -160,6 +161,7 @@ def home():
             ,style="text-align:center;margin-right:100px;margin-left:100px;padding:50px"  # left, right, center, justify
             ))
 
+#แสดงการเลือกเส้นทาง
 @rt('/routes')
 def get(route: str):
     station_name = []
@@ -207,6 +209,7 @@ def departure_card(d):
         ) 
     )
 
+#แสดงหน้าการเลือกเที่ยวไป
 @rt('/departure')
 def search_departure(origin_station: str, detination_station: str, bookdate: parsed_date):
     departure = control.search_departure_by_origin_destination_data(origin_station,detination_station,"15/02/2568")
@@ -234,7 +237,7 @@ def carriage_card(c,tn,d_id):
         ) 
     )   
 
-
+#แสดงหน้าการเลือก car
 @rt('/train')
 def get(trainNumber:str, departure_id:int):
     seat_id_list.clear()
@@ -246,7 +249,7 @@ def get(trainNumber:str, departure_id:int):
                 Div(*[carriage_card(car,trainNumber,departure_id) for car in carriages], id="product-list"),Style="padding-left:10%;padding-right:10%;")
 
 
-
+#ตรวจสอบว่าที่นั่งนั้นว่างรึเปล่า
 def seat_select(seat,car_num):
     btn_disabled_style = """
             margin:2px;
@@ -279,7 +282,7 @@ def seat_select(seat,car_num):
         return Button(f"{seat.get_seat_number}",style=btn_disabled_style)
         
 
-
+#แสดงหน้าการเลือกที่นั่ง
 @rt('/seat')
 def get(carriage_id:str,train_num:int,departure_id:int):
     seat_id_list.clear()
@@ -324,7 +327,7 @@ def get(carriage_id:str,train_num:int,departure_id:int):
                 ))
                 
 
-
+#เพิ่ม row เมื่อเลือกที่นั่ง
 @rt('/add')
 def post(seat_no:int, price:int,car_no:int, seat_type:str, passenger_name:str):
     if len(seat_id_list) == 4:
@@ -348,8 +351,8 @@ def post(seat_no:int, price:int,car_no:int, seat_type:str, passenger_name:str):
                 hx_swap="outerHTML",style="background-color: #f44336;height:60px;width:60px;"),
                 ),id=seat_id)
 
-
-@rt('/remove/{card_id}')  # รับ parameter card_id จาก URL
+#ลบที่นั่งจากการเลือก เมือกดปุ่ม "ลบ"
+@rt('/remove/{card_id}')  
 def delete(card_id: str):
     seat_id_list.remove(card_id)
     return ""
@@ -376,6 +379,7 @@ def ticket_card(seats,car,depar):
                     """
                 )
 
+#แสดงลายละเอียดตั๋วและการชำระเงิน
 @rt('/payment')
 def get(carriage_id: int, departure_id:int,train_num:str):
     book_seats_no = [int(i[5]) for i in seat_id_list]
@@ -434,17 +438,12 @@ def get(transection:str):
         return payment_form
 
 
-
+#popup ว่าทำการจองเสร็จสิ้นแล้ว
 @rt('/booked')
 def post(departure_id:int,carriage_id:int,train_num:str):
     member_id = control.get_login_member.get_member_id
     book_seats_no = [int(i[5]) for i in seat_id_list]
     control.booking_ticket(member_id,departure_id,train_num,carriage_id,book_seats_no)
-    # member = control.get_login_member
-    # booking_list = member.get_all_booking
-    # for booking in booking_list:
-    #     for ticket in booking.get_ticket:
-    #         print(ticket.get_ticket_id)
     return Div(
             Div(
                 H3("การจองเสร็จสิ้น"),
@@ -455,7 +454,7 @@ def post(departure_id:int,carriage_id:int,train_num:str):
             id="popup", cls="popup"
         )
 
-
+#แสดงลายละเอียด booking และ ticket
 def booking_card(booking):
     ticket_list = booking.get_ticket
     departure = booking.get_departure
@@ -474,7 +473,7 @@ def booking_card(booking):
                 Style="margin-left:100px;padding-left:40px;padding-right:40px;"
             ) for ticket in ticket_list]
         
-
+#หน้าจอประวัติการซื้อ
 @rt('/booking')
 def get():
     booking_list = control.get_booking_member()
@@ -492,14 +491,29 @@ def get():
             ),Style="padding-left:10%;padding-right:10%;")
         )
 
-@rt('/cancel/booking')
-def delete(departure_id:int,carriage_id:int,train_num:str):
+#หน้าจอเลือกตั๋วเพื่อยกเลิกการจอง
+@rt('/cancel')
+def get():
     booking_list = control.get_booking_member()
     if booking_list == []:
         return Body(navigation_bar(),
-                Container(H3("ประวัติการซื้อ"),Hr(),H3("ไม่พบประวัติการซื้อ"),
+                Container(H1("การซื้อตั๋วทั้งหมด"),Hr(),P("ไม่พบประวัติการซื้อตั๋ว"),
                 Style="padding-left:10%;padding-right:10%;"))
     else:
-        pass
+        tickets_list = []
+        for booking in booking_list:
+            for ticket in booking.get_ticket:
+                tickets_list.append(ticket)
+        print(tickets_list)
+        return Body(navigation_bar(),
+                    Container(
+                        H1("การซื้อตั๋วทั้งหมด"),Hr(),
+                        *[Card(
+                            Grid(P(f"ตู้โดยสาร ขบวนที่ {ticket.train_num} ({ticket.car_type})"),P(f"เส้นทาง  {ticket.origin_station} - {ticket.destination_station}",Style="text-align:right")),
+                            Grid(P(f"ชั้น {ticket.car_floor} ประเภท บทศ{ticket.car_name} เลขที่นั่ง {ticket.seat_num}"),P(f"{ticket.date} | {ticket.time}",Style="text-align:right")),
+                            P(f"ราคา {ticket.price} บาท"),
+                            P(f"รหัสตั๋ว {ticket.get_ticket_id}"),
+                            Style="margin-left:100px;padding-left:40px;padding-right:40px;") for ticket in tickets_list],
+                    Style="padding-left:10%;padding-right:10%;"))
 
 serve()
