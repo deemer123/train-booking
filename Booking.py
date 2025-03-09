@@ -8,7 +8,6 @@ class Booking:
         self.__member = member
         self.__departure = departure 
         self.__payment = payment
-        self.__timestamp = None
         self.__ticket = []
         self.__status = ""
     

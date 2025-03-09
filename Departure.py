@@ -10,9 +10,6 @@ class Departure:
         self.__origin_station = None
         self.__destination_station = None
         
- 
-
-
     @property
     def get_departure_id(self):
         return self.__departure_id
@@ -45,10 +42,6 @@ class Departure:
     def get_destination_station(self):
         return self.__destination_station
 
-
-
-
- 
     def assign_origin_to_destination_station(self,origin,destination):
         self.__origin_station = origin
         self.__destination_station = destination

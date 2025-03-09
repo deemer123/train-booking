@@ -21,7 +21,10 @@ class Ticket:
         self.__departure_car_type = None
         self.__departure_seat_num = None
         self.__price = None
-    
+
+    @property
+    def get_ticket_id(self):
+        return self.__ticket_id
     @property
     def origin_station(self):
         return self.__origin_station
@@ -59,6 +62,9 @@ class Ticket:
     @property
     def get_carriage(self):
         return self.__carriage
+    @property
+    def get_seat(self):
+        return self.__seat
 
 
     def update_attribute(self):
@@ -74,11 +80,8 @@ class Ticket:
         self.__departure_seat_num = self.__seat.get_seat_number
         self.__member_name = self.__member.get_name
         self.__price = self.__seat.get_price
-    @property
-    def get_ticket_id(self):
-        return self.__ticket_id
-
-
+    
+    
     def return_info(self):
         return {'ticket_id':self.__ticket_id,'member_name' :self.__member_name,
                 "date":self.__departure_date, "time":self.__departure_time,

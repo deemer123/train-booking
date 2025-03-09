@@ -7,8 +7,7 @@ class Member(Account):
         super().__init__(name,email,role,phone_number,password)
         Member.member_id += 1
         self.__member_id = Member.member_id      
-        self.__booking = [] 
-        self.__discount = []  
+        self.__booking = []  
 
     @property
     def get_member_id(self):
@@ -30,11 +29,19 @@ class Member(Account):
     def add_booking(self,booking):
         if isinstance(booking,Booking):
             self.__booking.append(booking)
+
+    def remove_ticket(self,ticket_id):
+        for booking in self.__booking:
+            for ticket in booking.get_ticket:
+                if ticket_id == ticket.get_ticket_id:
+                    booking.get_ticket.remove(ticket)
+                    del ticket
+                    return booking.get_ticket
+                
+    def remove_booking(self):
+        for booking in self.__booking:
+            if booking.get_ticket == []:
+                self.__booking.remove(booking)
+                del booking
         
     
-    def bookTicket():
-        pass
-    def cancelBooking():
-        pass
-    def changingBooking():
-        pass

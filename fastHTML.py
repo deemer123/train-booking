@@ -6,8 +6,6 @@ from datetime import datetime, time, timedelta
 
 app,rt = fast_app()
 
-
-
 control = Controller()
 login = False
 login_id = None
@@ -25,10 +23,7 @@ popup_style = Style("""
                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
                 min-width: 300px; text-align: center;
                 padding:40px 40px 
-            }
-            
-            }
-        """)
+            }}""")
 
 #แถบเมนูที่แสดงบนหน้าเว็บ
 def navigation_bar():
@@ -351,11 +346,13 @@ def post(seat_no:int, price:int,car_no:int, seat_type:str, passenger_name:str):
                 hx_swap="outerHTML",style="background-color: #f44336;height:60px;width:60px;"),
                 ),id=seat_id)
 
+
 #ลบที่นั่งจากการเลือก เมือกดปุ่ม "ลบ"
 @rt('/remove/{card_id}')  
 def delete(card_id: str):
     seat_id_list.remove(card_id)
     return ""
+
 
 def ticket_card(seats,car,depar):
     return  Card(
@@ -376,8 +373,8 @@ def ticket_card(seats,car,depar):
                         margin: 10px;
                         background-color: #f5f5f5;
                         box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-                    """
-                )
+                    """)
+
 
 #แสดงลายละเอียดตั๋วและการชำระเงิน
 @rt('/payment')
@@ -454,6 +451,7 @@ def post(departure_id:int,carriage_id:int,train_num:str):
             id="popup", cls="popup"
         )
 
+
 #แสดงลายละเอียด booking และ ticket
 def booking_card(booking):
     ticket_list = booking.get_ticket
@@ -473,6 +471,7 @@ def booking_card(booking):
                 Style="margin-left:100px;padding-left:40px;padding-right:40px;"
             ) for ticket in ticket_list]
         
+
 #หน้าจอประวัติการซื้อ
 @rt('/booking')
 def get():
@@ -491,6 +490,8 @@ def get():
             ),Style="padding-left:10%;padding-right:10%;")
         )
 
+
+delete_id_list = []
 #หน้าจอเลือกตั๋วเพื่อยกเลิกการจอง
 @rt('/cancel')
 def get():
@@ -512,8 +513,19 @@ def get():
                             Grid(P(f"ตู้โดยสาร ขบวนที่ {ticket.train_num} ({ticket.car_type})"),P(f"เส้นทาง  {ticket.origin_station} - {ticket.destination_station}",Style="text-align:right")),
                             Grid(P(f"ชั้น {ticket.car_floor} ประเภท บทศ{ticket.car_name} เลขที่นั่ง {ticket.seat_num}"),P(f"{ticket.date} | {ticket.time}",Style="text-align:right")),
                             P(f"ราคา {ticket.price} บาท"),
-                            P(f"รหัสตั๋ว {ticket.get_ticket_id}"),
-                            Style="margin-left:100px;padding-left:40px;padding-right:40px;") for ticket in tickets_list],
+                            Grid(P(f"รหัสตั๋ว {ticket.get_ticket_id}"),
+                            Form(
+                                Button("Delete",
+                                hx_delete=f"/delete/ticket-{ticket.get_ticket_id}",  # ส่ง id ไปกับ request
+                                hx_target=f"#ticket-{ticket.get_ticket_id}",         # ระบุเป้าหมายด้วย id
+                                hx_swap="outerHTML"
+                            ),style="text-align:right;")),
+                            Style="margin-left:100px;padding-left:40px;padding-right:40px;",id= f"ticket-{ticket.get_ticket_id}") for ticket in tickets_list],
                     Style="padding-left:10%;padding-right:10%;"))
+
+@rt('/delete/ticket-{ticket_id}')
+def delete(ticket_id:int):
+    print(control.cancel_ticket(ticket_id))
+    print(f"delete ID:{ticket_id}")
 
 serve()

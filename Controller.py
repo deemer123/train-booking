@@ -178,25 +178,17 @@ class Controller:
 
     def cancel_ticket(self,ticket_id):
         member = self.get_login_member
+
         ticket = member.find_ticket_by_id(ticket_id)
-        del ticket
+        seat = ticket.get_seat
+        seat.release_seat()
+        member.remove_ticket(ticket_id)
+        member.remove_booking()
+        return seat.get_status
         
 
 
-# control = Controller()
-# print(control.get_route_list)
-# member_list = control.get_member_list
-# for member in member_list:
-#     print(member.get_member_id)
-# print(control.booking_ticket(1,1,"7",1,[1]))
-# print(control.search_departure_by_origin_destination_data("สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","15/2/2568"))
-# print(control.ticket_info(1,1,1))
-# # print(control.search_carriage_by_train_nums("7"))
-# # print(control.register('naruto','shippuden@email.com','0222222',"123"))
-# # print(control.login('shippuden@email.com','123'))
-# print(control.get_all_seat_in_car(1))
-# print()
-# print(control.get_all_seat_in_car(2))
+
 
 
 
