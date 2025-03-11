@@ -5,12 +5,12 @@ class Train:
           self.__train_number = train_number
           self.__type = type
           self.__carriage = []
-          self.status = "release"
+         
      @property
      def get_train_number(self):
           return self.__train_number
      @property
-     def get_carriag(self):
+     def get_carriage(self):
           return self.__carriage
      @property
      def get_train_type(self):
@@ -20,7 +20,7 @@ class Train:
      def get_all_carriage(self):
           return [car for car in self.__carriage]
 
-     def append_carriage(self,carriage):
+     def add_carriage(self,carriage):
             if isinstance(carriage, Carriage):
                 self.__carriage.append(carriage)
 
@@ -32,11 +32,6 @@ class Train:
           return carriage_order
 
 
-     def set_available(self):
-          pass
      
-     def set_fully_booked(self):
-          pass
-
 
 

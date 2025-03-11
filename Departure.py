@@ -1,59 +1,69 @@
 from Station import Station
 from Schedule import Schedule
 
+
 class Departure:
-    def  __init__(self, departure_id, route, schedule, train):
-        self.__departure_id = departure_id
-        self.__route = route
-        self.__schedule = schedule
+    departure_id = 0
+    def  __init__(self, train, schedule_train, route):
+        Departure.departure_id += 1       
+        self.__departure_id = Departure.departure_id 
         self.__train = train
-        self.__origin_station = None
-        self.__destination_station = None
-        
-    @property
-    def get_departure_id(self):
-        return self.__departure_id
-    @property
-    def get_date(self):
-        return self.__schedule.get_date
-    @property
-    def get_time(self):
-        return self.__schedule.get_time
-    @property
-    def get_train(self):
-        return self.__train
+        self.__schedule_train = schedule_train
+        self.__route = route
+    
     
     @property
-    def get_train_number(self):
-        return self.__train.get_train_number
+    def get_schedule(self):
+        return  self.__schedule_train
     @property
-    def get_train_type(self):
-        return self.__train.get_train_type
+    def get_train(self):
+        return  self.__train
     @property
-    def get_departure_time(self):
-        return self.__schedule.get_departure_time
-    @property
-    def get_arrival_time(self):
-        return self.__schedule.get_arrival_time
-    @property
-    def get_origin_station(self):
-        return self.__origin_station
-    @property
-    def get_destination_station(self):
-        return self.__destination_station
+    def get_route(self):
+        return  self.__route
+    
+    def calculate_ticket_price(self, train_type, seat_type, floor_type, distance):
+        base_price_per_km = {
+            "เร็ว": 0.5,
+            "ด่วนพิเศษ CNR": 1.5,
+            "ด่วน": 1.0,
+            "ด่วนพิเศษ": 1.1,
+            "ด่วนพิเศษดีเซลราง": 1.2
+        }
 
-    def assign_origin_to_destination_station(self,origin,destination):
-        self.__origin_station = origin
-        self.__destination_station = destination
+        seat_multiplier = {
+            "นั่ง": 1.0,
+            "เตียงบน": 1.2,
+            "เตียงล่าง": 1.5,
+            "นอน": 1.4  # เพิ่มประเภทที่นั่ง "นอน"
+        }
 
-    # def get_departure_info(self):
-    #     departure_time = self.__schedule.get_departure_time
-    #     arrival_time = self.__schedule.get_arrival_time
-    #     train_num = self.__train.get_train_number
-    #     train_type = self.__train.get_train_type
-    #     return {"depar-time":departure_time,"arri-time":arrival_time,"train-num":train_num,"train-type":train_type}
+        floor_multiplier = {
+            "3": 1.0,
+            "2": 1.3,
+            "1": 1.8
+        }
 
+        # ตรวจสอบว่า train_type มีอยู่ในตารางหรือไม่
+        if train_type not in base_price_per_km:
+            return "ประเภทขบวนรถไฟไม่ถูกต้อง"
 
+        if seat_type not in seat_multiplier:
+            return "ประเภทที่นั่งไม่ถูกต้อง"
+
+        if floor_type not in floor_multiplier:
+            return "ประเภทชั้นไม่ถูกต้อง"
+
+        # คำนวณราคาพื้นฐาน
+        base_price = base_price_per_km[train_type] * distance
+        seat_price = seat_multiplier[seat_type] * base_price
+        total_price = floor_multiplier[floor_type] * seat_price
+
+        print(f"Base Price: {base_price}")  # ตรวจสอบราคาพื้นฐาน
+        print(f"Seat Price: {seat_price}")  # ตรวจสอบราคาตามที่นั่ง
+        print(f"Total Price: {total_price}")  # ตรวจสอบราคารวม
+      
+        return int(total_price)
  
 
 

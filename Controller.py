@@ -25,10 +25,13 @@ class Controller:
         self.__station =   []
         self.__departure = []
         self.__carriag =   []
-        self.__route = []
+        self.__route =     []
+        self.__bookings = []
         create_instance(self)
         
-
+    @property
+    def get_bookings_list(self):
+        return self.__bookings
     @property
     def get_member_list(self):
         return self.__member
@@ -41,7 +44,13 @@ class Controller:
     @property
     def get_route_list(self):
         return self.__route
+    @property
+    def get_login_member(self):
+        for member in self.__member:
+            if self.login_account_no == member.get_member_id:
+                return member
     
+
     def login(self,email,password):
         for member in self.__member:
             if email == member.get_email and password == member.get_password:
@@ -57,12 +66,9 @@ class Controller:
         self.add_member(Member(name,email,"member",phone_number,password))
         return 'Register Sucess'
     
-    @property
-    def get_login_member(self):
-        for member in self.__member:
-            if self.login_account_no == member.get_member_id:
-                return member
-
+    
+    def add_booking(self,booking):
+        self.__bookings.append(booking)
     def add_member(self,member):
         if isinstance(member, Member):
             self.__member.append(member)
@@ -82,7 +88,10 @@ class Controller:
         if isinstance(route, Route):
             self.__route.append(route)
 
-
+    def find_booking_by_date(self,date):
+        for book in self.__bookings:
+            if date == book.get_date:
+                return book
     def find_member_by_id(self,member_id):
         for member in self.__member:
             if member_id == member.get_member_id:
@@ -99,9 +108,10 @@ class Controller:
                 return train
         return "Not Found Train"
     def find_carriag_by_id(self,carriag_id):
-        for carriag in self.__carriag:
-            if carriag_id == carriag.get_carriage_id:
-                return carriag
+        for train in self.__train:
+            for carriage in train.get_carriage:
+                if carriag_id == carriage.get_carriage_id:
+                    return carriage
         return "Not Found Carriag"
     
 
@@ -117,35 +127,47 @@ class Controller:
                 if origin_station == departure.get_origin_station and destination_station == departure.get_destination_station:
                     departure_lst.append(departure)
         return departure_lst 
- 
+    
+    def get_booking_member(self):
+        member = self.get_login_member
+        booking_list = member.get_all_booking
+        return booking_list
 
-    # Booking Ticket method return --> 'sucess','error'
-    def booking_ticket(self,member_id,departure_id,train_num,carriage_id,seat_number_list):
-        count = 0
+    def get_ticket_member(self,booking_id):
+        member = self.get_login_member
+        booking = member.find_booking_by_id(booking_id)
+        ticket_list = booking.get_ticket
+        return ticket_list
+
+    ## Booking Ticket method return --> 'sucess','error'
+    def booked_ticket(self,member_id,train_num,carriage_id,seat_number_list,ori,des,date,price):
+        departure_time = None
+        arrival_time = None
+        for i in self.search_departure(ori,des):
+            if i['train_num'] == train_num:
+                departure_time = i['departure_time']
+                arrival_time = i['arrival_time']
         member = self.find_member_by_id(member_id)
-        booked_departure = self.find_departure_by_id(departure_id)
         booked_train = self.find_train_by_train_num(train_num)
-        booked_carriage = None
+        booked_carriage = self.find_carriag_by_id(carriage_id)
         booked_seat = []
-        for car in booked_train.get_carriag:
-            if carriage_id == car.get_carriage_id:
-                booked_carriage = car
         for seat in booked_carriage.get_seat:
             for seat_num in seat_number_list:
                 if seat_num == seat.get_seat_number:
                     seat.reserve_seat()
                     booked_seat.append(seat)
-        count+=1
-        pay = Payment(count,booked_carriage,booked_seat,member)
+        pay = Payment(1,booked_carriage,booked_seat,member)
         pay.processPayment()
         if pay.checkStatus() == 'sucess':
-            booking = Booking(member,booked_departure,pay)
+            booking = Booking(member,booked_train,booked_carriage,pay,date)
             for seat in booked_seat:
-                ticket = Ticket(member,booked_departure,booked_carriage,seat)
+                ticket = Ticket(member,booked_train,booked_carriage,seat,ori,des,date,departure_time,arrival_time,price)
                 ticket.update_attribute()
                 booking.ticket_append(ticket)
             member.add_booking(booking)
-        return "Book Ticket Sucess"
+            return booking
+       
+
 
     def get_all_seat_in_car(self,car_id):
         car = self.find_carriag_by_id(car_id)
@@ -165,16 +187,7 @@ class Controller:
             if route_name == route.get_route_name:
                 return route.get_stations_name
     
-    def get_booking_member(self):
-        member = self.get_login_member
-        booking_list = member.get_all_booking
-        return booking_list
-
-    def get_ticket_member(self,booking_id):
-        member = self.get_login_member
-        booking = member.find_booking_by_id(booking_id)
-        ticket_list = booking.get_ticket
-        return ticket_list
+    
 
     def cancel_ticket(self,ticket_id):
         member = self.get_login_member
@@ -185,14 +198,88 @@ class Controller:
         member.remove_ticket(ticket_id)
         member.remove_booking()
         return seat.get_status
+    
+    def search_departure(self, source, destination, date=""):
+        match_departure = []
+        for departure in self.__departure:
+            schedule = departure.get_schedule
+            train = departure.get_train
+            schedule_train = schedule.get_schedule_train
+            source_index = -1
+            destination_index = -1
+
+            # ค้นหาดัชนีของสถานีต้นทางและปลายทาง
+            for i in range(len(schedule_train)):
+                if schedule_train[i][0] == source:
+                    source_index = i
+                if schedule_train[i][0] == destination:
+                    destination_index = i
+
+            # ตรวจสอบว่าพบสถานีต้นทางและปลายทางในตารางเวลา
+            if source_index != -1 and destination_index != -1 and source_index < destination_index:
+                departure_time = schedule_train[source_index][1]
+                arrival_time = schedule_train[destination_index][1]
+                train_num = train.get_train_number
+                train_type = train.get_train_type
+
+                match_departure.append({
+                    "departure_time": departure_time,
+                    "arrival_time": arrival_time,
+                    "train_num": train_num,
+                    "train_type": train_type
+                })
+        return match_departure
+    
+
+    def show_carriage(self, train_num, source, destination):
+        all_carriages = []  # สร้างลิสต์เพื่อเก็บข้อมูลโบกี้
+
+        for departure in self.__departure:
+            train = departure.get_train  # ดึงข้อมูลขบวนรถไฟ
+            route = departure.get_route  # ดึงเส้นทางการเดินทาง
+
+            # ตรวจสอบว่าหมายเลขขบวนรถไฟตรงกับที่ระบุ
+            if train_num == train.get_train_number:
+                distance = route.calculate_distance(source, destination)  # คำนวณระยะทาง
+
+                # วนลูปดึงข้อมูลโบกี้แต่ละอัน
+                for carriage in train.get_carriage:
+                    if carriage.is_fully_booked():
+                        carriage.set_fully_booked()
+                    else:
+                        carriage.set_available()
+                    # คำนวณราคาตั๋วสำหรับโบกี้นั้น ๆ
+                    price = departure.calculate_ticket_price(
+                        train.get_train_type,
+                        carriage.get_seat_type,
+                        carriage.get_floor,
+                        distance
+                    )
+
+                    # เพิ่มข้อมูลโบกี้พร้อมรายละเอียดลงในลิสต์
+                    all_carriages.append({
+                        "carrige_id": carriage.get_carriage_id,
+                        "carrige_name": carriage.get_name,
+                        "seat_type": carriage.get_seat_type,
+                        "room_type": carriage.get_type,
+                        "floor": carriage.get_floor,
+                        "status": carriage.get_status,
+                        "price": price,  # เพิ่มราคาที่คำนวณแล้ว
+                    })
+
+        return all_carriages  # คืนค่าข้อมูลโบกี้ทั้งหมด
+    
+
+
+# con = Controller()
+# member = con.login("anawan123@mail.com","147258369")
+# mem_id = member.get_member_id
+# con.booked_ticket(mem_id,"7",164,[1,2],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11",1134)
+       
+    
+
+
         
-
-
-
-
-
-
-
-
+        
 
 
