@@ -58,10 +58,9 @@ class Departure:
         base_price = base_price_per_km[train_type] * distance
         seat_price = seat_multiplier[seat_type] * base_price
         total_price = floor_multiplier[floor_type] * seat_price
-
-        print(f"Base Price: {base_price}")  # ตรวจสอบราคาพื้นฐาน
-        print(f"Seat Price: {seat_price}")  # ตรวจสอบราคาตามที่นั่ง
-        print(f"Total Price: {total_price}")  # ตรวจสอบราคารวม
+        # print(f"Base Price: {base_price}")  # ตรวจสอบราคาพื้นฐาน
+        # print(f"Seat Price: {seat_price}")  # ตรวจสอบราคาตามที่นั่ง
+        # print(f"Total Price: {total_price}")  # ตรวจสอบราคารวม
       
         return int(total_price)
  

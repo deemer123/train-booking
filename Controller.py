@@ -89,9 +89,8 @@ class Controller:
             self.__route.append(route)
 
     def find_booking_by_date(self,date):
-        for book in self.__bookings:
-            if date == book.get_date:
-                return book
+        return [book for book in self.__bookings if date == book.get_date]
+    
     def find_member_by_id(self,member_id):
         for member in self.__member:
             if member_id == member.get_member_id:
@@ -164,20 +163,10 @@ class Controller:
                 ticket = Ticket(member,booked_train,booked_carriage,seat,ori,des,date,departure_time,arrival_time,price)
                 ticket.update_attribute()
                 booking.ticket_append(ticket)
+            self.add_booking(booking)
             member.add_booking(booking)
             return booking
-       
-
-
-    def get_all_seat_in_car(self,car_id):
-        car = self.find_carriag_by_id(car_id)
-        return car.get_all_seat_number_and_status # [[seat_num,status]]
         
-    # method that return ticket information by (member_id, booking_id, ticket_id)       
-    def ticket_info(self,member_id, booking_id, ticket_id):
-        member = self.find_member_by_id(member_id)
-        ticket = member.find_ticket_by_id(ticket_id)
-        return ticket.return_info()
     
     def get_all_station_name(self):
         return [station.get_station_name for station in self.__station]
@@ -187,11 +176,9 @@ class Controller:
             if route_name == route.get_route_name:
                 return route.get_stations_name
     
-    
 
     def cancel_ticket(self,ticket_id):
         member = self.get_login_member
-
         ticket = member.find_ticket_by_id(ticket_id)
         seat = ticket.get_seat
         seat.release_seat()
@@ -199,7 +186,8 @@ class Controller:
         member.remove_booking()
         return seat.get_status
     
-    def search_departure(self, source, destination, date=""):
+
+    def search_departure(self, source, destination,date=""):
         match_departure = []
         for departure in self.__departure:
             schedule = departure.get_schedule
@@ -231,9 +219,9 @@ class Controller:
         return match_departure
     
 
-    def show_carriage(self, train_num, source, destination):
+    def show_carriage(self, train_num, source, destination, date):
         all_carriages = []  # สร้างลิสต์เพื่อเก็บข้อมูลโบกี้
-
+        # booked_list = self.find_booking_by_date(date)
         for departure in self.__departure:
             train = departure.get_train  # ดึงข้อมูลขบวนรถไฟ
             route = departure.get_route  # ดึงเส้นทางการเดินทาง
@@ -241,13 +229,8 @@ class Controller:
             # ตรวจสอบว่าหมายเลขขบวนรถไฟตรงกับที่ระบุ
             if train_num == train.get_train_number:
                 distance = route.calculate_distance(source, destination)  # คำนวณระยะทาง
-
                 # วนลูปดึงข้อมูลโบกี้แต่ละอัน
                 for carriage in train.get_carriage:
-                    if carriage.is_fully_booked():
-                        carriage.set_fully_booked()
-                    else:
-                        carriage.set_available()
                     # คำนวณราคาตั๋วสำหรับโบกี้นั้น ๆ
                     price = departure.calculate_ticket_price(
                         train.get_train_type,
@@ -255,9 +238,27 @@ class Controller:
                         carriage.get_floor,
                         distance
                     )
+                    date_booked_list = self.find_booking_by_date(date)
+                    car_booked_list = [book for book in date_booked_list if book.get_car_id == carriage.get_carriage_id]
+                    booked_seat = []
+                    # ตรวจสอบการจองของวันนั้นว่ามีการจองหรือไม่
+                    if date_booked_list == [] or car_booked_list == []: # กรณีวันนี้-ตู้นี้ยังไม่มีการจอง
+                        carriage.set_available()
+                        carriage.set_all_seats_status("release")
+                    else:                                               # กรณีวันนี้-ตู้นี้มีการจอง
+                        for booked in car_booked_list:
+                            lst_car_attribute = booked.get_booking_car_and_seat_id()
+                            booked_seat += lst_car_attribute['seats']
+                        if len(booked_seat) == carriage.get_seat_amount:    # กรณีวันนี้-ตู้นี้มีการจองที่นั่งเต็ม
+                            carriage.set_fully_booked()
+                            carriage.set_all_seats_status("booked")
+                        else:
+                            carriage.set_all_seats_status("release")        # กรณีวันนี้-ตู้นี้มีการจองบางที่นั่ง
+                            carriage.set_seats_status(booked_seat)       
 
                     # เพิ่มข้อมูลโบกี้พร้อมรายละเอียดลงในลิสต์
                     all_carriages.append({
+                        "seat": carriage.get_all_seat_number_and_status,
                         "carrige_id": carriage.get_carriage_id,
                         "carrige_name": carriage.get_name,
                         "seat_type": carriage.get_seat_type,
@@ -266,20 +267,87 @@ class Controller:
                         "status": carriage.get_status,
                         "price": price,  # เพิ่มราคาที่คำนวณแล้ว
                     })
-
         return all_carriages  # คืนค่าข้อมูลโบกี้ทั้งหมด
     
-
+    # เซ็ตที่นั่งตาม "วัน" ที่รับมาว่ามีการจองที่นั่งหรือไม่ในระบบ
+    def set_seat_booked(self,date,car_id):
+        date_booked_list = self.find_booking_by_date(date)
+        carriage = self.find_carriag_by_id(car_id)
+        car_booked_list = [book for book in date_booked_list if book.get_car_id == carriage.get_carriage_id]
+        booked_seat = []
+        # ตรวจสอบการจองของวันนั้นว่ามีการจองหรือไม่
+        if date_booked_list == [] or car_booked_list == []: # กรณีวันนี้-ตู้นี้ยังไม่มีการจอง
+            carriage.set_available()
+            carriage.set_all_seats_status("release")
+        else:                                               # กรณีวันนี้-ตู้นี้มีการจอง
+            for booked in car_booked_list:
+                lst_car_attribute = booked.get_booking_car_and_seat_id()
+                booked_seat += lst_car_attribute['seats']
+            if len(booked_seat) == carriage.get_seat_amount:    # กรณีวันนี้-ตู้นี้มีการจองที่นั่งเต็ม
+                carriage.set_fully_booked()
+                carriage.set_all_seats_status("booked")
+            else:
+                carriage.set_all_seats_status("release")
+                carriage.set_seats_status(booked_seat) 
+    
+    
+#### Test App ############
 
 # con = Controller()
 # member = con.login("anawan123@mail.com","147258369")
 # mem_id = member.get_member_id
-# con.booked_ticket(mem_id,"7",164,[1,2],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11",1134)
-       
+# booking = con.booked_ticket(mem_id,"7",1,[1,2],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11",1134)
+# booking = con.booked_ticket(mem_id,"7",1,[3,4],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-04-11",1134)
+# booking = con.booked_ticket(mem_id,"7",1,[5,6],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11",1134)
+# booking2 = con.booked_ticket(mem_id,"9",2,[3,4],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11",1134)
+# booking2 = con.booked_ticket(mem_id,"9",2,[3,4],"สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-02-11",1134)
+# train_9 = con.find_train_by_train_num("9")
+# carriage = train_9.get_carriage
+# print(carriage[0].get_carriage_id)
+# print(con.get_bookings_list)
+# print(con.find_booking_by_date("2025-03-11"))
+# print(booking2.get_booking_car_and_seat_id())
+# print(con.show_carriage("7","สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-03-11"))
+# print()
+# print(con.show_carriage("7","สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-04-11"))
+# print()
+# con.show_carriage("9","สถานีกลางกรุงเทพอภิวัฒน์","เชียงใหม่","2025-02-11")
+# print(train_9.get_carriage)
+# booked_list = con.find_booking_by_date("2025-03-11")
+
+# def set_seat_booked(date,car_id):
+#     date_booked_list = self.find_booking_by_date(date)
+#     carriage = con.find_carriag_by_id(car_id)
+#     car_booked_list = [book for book in date_booked_list if book.get_car_id == carriage.get_carriage_id]
+#     booked_seat = []
+#     # ตรวจสอบการจองของวันนั้นว่ามีการจองหรือไม่
+#     if date_booked_list == [] or car_booked_list == []: # กรณีวันนี้-ตู้นี้ยังไม่มีการจอง
+#         carriage.set_available()
+#         carriage.set_all_seats_status("release")
+#     else:                                               # กรณีวันนี้-ตู้นี้มีการจอง
+#         for booked in car_booked_list:
+#             lst_car_attribute = booked.get_booking_car_and_seat_id()
+#             booked_seat += lst_car_attribute['seats']
+#         if len(booked_seat) == carriage.get_seat_amount:    # กรณีวันนี้-ตู้นี้มีการจองที่นั่งเต็ม
+#             carriage.set_fully_booked()
+#             carriage.set_all_seats_status("booked")
+#         else:
+#             carriage.set_all_seats_status("release")
+#             carriage.set_seats_status(booked_seat) 
+
+
+
+
+
+
+
+
     
 
 
-        
+
+    
+# set_seat_booked("2025-03-11",1)
         
 
 

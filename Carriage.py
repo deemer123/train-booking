@@ -37,22 +37,32 @@ class Carriage:
     @property
     def get_type(self):
         return self.__car_type
-    
     @property
     def get_floor(self):
         return self.__floor
     @property
     def get_status(self):
         return self.__status
+    @property
+    def get_all_seat_number_and_status(self):
+        return [[seat.get_seat_number,seat.get_status] for seat in self.__seat]
     
     
     def get_all_seat(self):
         return [seat for seat in self.__seat]
     
-    def assign_seats(self,lst):
-        self.__seat = lst
-        self.set_seat_price(self.__price)
+    def set_seats_status(self,seat_lst):
+        for seat in self.__seat:
+            if seat.get_seat_number in seat_lst:
+                seat.reserve_seat()
+    def set_all_seats_status(self,status):
+        for seat in self.__seat:
+            if status == "booked":
+                seat.reserve_seat()
+            elif status == "release":
+                seat.release_seat()
 
+                   
     def set_seat_price(self,price):
         for seat in self.__seat:
             seat.set_price(price)

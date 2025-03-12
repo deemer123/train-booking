@@ -47,6 +47,9 @@ class Ticket:
     def time(self):
         return self.__departure_time
     @property
+    def get_car_id(self):
+        return self.__carriage.get_carriage_id
+    @property
     def car_floor(self):
         return self.__departure_car_floor
     @property
@@ -89,18 +92,7 @@ class Ticket:
   
     
     
-    def return_info(self):
-        return {'ticket_id':self.__ticket_id,'member_name' :self.__member_name,
-                "date":self.__departure_date, "time":self.__departure_time,
-                "route":f"{self.__origin_station} - {self.__destination_station}",
-                "train_num" : self.__departure_train_num,
-                  "train_type" :self.__departure_type, 
-                  "cartype_floor" :f'{self.__departure_car_name}-{self.__departure_car_type}/{self.__departure_car_floor}', 
-                  "seat_number" :self.__departure_seat_num,
-                "phone_number": self.__member.get_phone_number,
-                "email": self.__member.get_email,"price":self.__price
-                }
-    
+
 
 
     

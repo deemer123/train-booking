@@ -11,7 +11,7 @@ class Booking:
         self.__payment = payment
         self.__date = date
         self.__amount = None
-        self.__ticket = []
+        self.__tickets = []
         self.__status = "release"
     
     @property
@@ -19,19 +19,31 @@ class Booking:
         return self.__booking_id
     @property
     def get_ticket(self):
-        return self.__ticket
+        return self.__tickets
     @property
     def get_train(self):
         return self.__train
     @property
     def get_date(self):
         return self.__date
+    @property
+    def get_car_id(self):
+        return self.__carriage.get_carriage_id
     
     def ticket_append(self,ticket):
-        self.__ticket.append(ticket)
+        self.__tickets.append(ticket)
 
-    def get_booking_info(self):
-        self.__carriage.get_carriage_id
+
+    def get_booking_car_and_seat_id(self):
+        car_id = None
+        seats_num_list = []
+        for ticket in self.__tickets:
+            car_id = ticket.get_car_id
+            seats_num_list.append(ticket.seat_num)
+        return {
+            "car_id":car_id,
+            "seats":seats_num_list
+        }
 
     
 
