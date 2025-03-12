@@ -14,4 +14,4 @@ class Payment:
 
     def checkStatus(self):
         if self.__status == 'sucess':
-            return 'sucess'
+            return 'sucess' 

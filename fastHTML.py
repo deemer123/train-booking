@@ -61,14 +61,57 @@ def page():
     return  Body(navigation_bar(),
                  Container(Div(H1("ศูนย์ความช่วยเหลือ")),Hr(),
                      Grid(Card(
-                         Button("วิธีการจองตั๋วโดยสาร",style="width:100%;height:60px;margin-bottom:10px;"),
-                         Button("วิธีการยกเลิกตั๋วโดยสาร",style="width:100%;height:60px;margin-bottom:10px;"),
-                         Button("สมัครสมาชิก",style="width:100%;height:60px;margin-bottom:10px;"),
-                         Button("คำถามที่พบบ่อย",style="width:100%;height:60px;margin-bottom:10px;"),
-                     ),Card("",Style="width:100%;"),Style="grid-template-columns: 1fr 3fr;"),
-                     
-    Style="padding-left:10%;padding-right:10%;"))
+                         Form(
+                            Button("วิธีการจองตั๋วโดยสาร",style="width:100%;height:60px;margin-bottom:10px;",id="btn", value="booking"),
+                            Button("วิธีการยกเลิกตั๋วโดยสาร",style="width:100%;height:60px;margin-bottom:10px;",id="btn", value="cancel-booking"),
+                            hx_get="/contant", target_id="contant-box", hx_trigger="click"),
+                     ),Card("",id="contant-box",Style="width:100%;padding:40px"),Style="grid-template-columns: 1fr 3fr;"),
+        Style="padding-left:10%;padding-right:10%;"))
+
+@rt("/contant")
+def contant_show(btn:str):
+    if btn == "booking":
+        return Div(
+                   H3("วิธีการจองตั๋วโดยสาร"),Hr(),
+                   Img(src="https://placehold.co/200",Style="margin-bottom:20px;margin-top:20px;"),
+                   H4("ขั้นตอนที่ 1"),P("ท่านจะต้อง สมัครสมาชิก หรือ ทำการเข้าสู่ระบบ ก่อนทุกครั้งที่จะทำการจองตั๋วโดยสาร"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 2"),P("เมื่อท่านเข้าสู่หน้าเว็บไซต์ด้านล่างเมนูของเว็บไซต์จะมีช่องทางให้ท่าน ค้นหาเที่ยวรถ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 3"),P("เลือกสายของรถไฟที่ท่านต้องการเดินทาง เช่น ท่านต้องการเดินทางไป เชียงใหม่ ให้เลือก สายเหนือ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 4"),P("เลือกสถานีต้นทางและปลายทางที่ท่านสะดวกในการเดินทางและเลือกวันที่ต้องการเดินทาง"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 5"),P("เลือกสถานีต้นทางและปลายทางที่ท่านสะดวกในการเดินทางและเลือกวันที่ต้องการเดินทาง"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 6"),P("กดปุ่ม ค้นหา ระบบจะนำท่านไปยังหน้าแสดงรายการขบวนรถ ให้ท่านเลือก เวลา และขบวนรถที่ท่านต้องการ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 7"),P("เมื่อท่านเลือก วันที่ เวลา และขบวนที่ต้องการได้แล้ว ให้คลิกที่ปุ่ม เลือกด้านหลังขบวนรถทีท่านต้องการ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 8"),P("ระบบจะนำท่านไปยังหน้าเลือกตู้โดยสาร โดยตู้โดยสารจะมีให้เลือก แบบปรับอากาศ หรือ พัดลม หรือ ตู้นอน แล้วแต่ท่านต้องการ เมื่อเลือกได้แล้วให้ท่าน กดปุ่ม เลือก ที่อยู่ด้านหลังตู้โดยสารที่ท่านต้องการ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 9"),P("ให้ท่านระบุที่นั่งที่ต้องการสามารถเลือกที่ปุ่ม ถัดไป เพื่อทำรายการการจองต่อ"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 10"),P("เมื่อกดปุ่ม ถัดไป จากหน้าระบุที่นั่งแล้ว ระบบจะนำท่านไปยังหน้าสรุปรายละเอียดการจองให้ท่านตรวจสอบความถูกต้องอีกครั้งก่อนทำการจอง หากท่านต้องการแก้ไขข้อมูล ให้คลิกที่ปุ่ม ย้อนกลับ แต่หากท่านต้องการทำรายการต่อ ให้เลือกวิธีการชำระเงินที่ท่านสะดวกในการชำระเงิน "),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+
+                   H4("ขั้นตอนที่ 11"),P("เมื่อท่านชำระเงินแล้วระบบจะทำการออกตั๋วและส่งให้ท่านผ่านทางอีเมล"),Style="text-align:center;")
+    elif btn == "cancel-booking":
+        return Div(
+                   H3("วิธีการยกเลิกตั๋วโดยสาร"),Hr(),
+                   Img(src="https://placehold.co/200",Style="margin-bottom:20px;margin-top:20px;"),
+                   H4("ขั้นตอนที่ 1"),P("ให้ท่านทำการเข้าสู่ระบบโดยคลิกที่ปุ่ม เข้าสู่ระบบ ที่ด้านบนสุดของเว็บไซต์"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 2"),P("เมื่อกดปุ่มเข้าสู่ระบบแล้ว ระบบจะนำท่านไปยังหน้าแรก"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 3"),P("คลิกเลือกทีเมนูด้านบนที่คำว่า ยกเลิกตั๋วโดยสาร"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 4"),P("ท่านจะเห็นรายการตั๋วโดยสารที่ท่านได้ทำการจองเอาไว้ เลือกรายการตั๋วที่ท่านต้องการยกเลิก"),
+                   Img(src="https://placehold.co/200",Style="margin-top:20px;"),
+                   H4("ขั้นตอนที่ 5"),P("เมื่อท่านแน่ใจแล้วว่าต้องการยกเลิกตั๋วโดยสารรายการนั้นๆ ให้ท่านคลิกที่ปุ่มยกเลิกพื่อทำการยกเลิก"),Style="text-align:center;")
     
+
+
 # แสดงหน้าการเข้าสู่ระบบ
 @rt("/login-popup")
 def get_popup():
@@ -340,14 +383,11 @@ def get(carriage_id:str,train_num:str,ori:str,des:str,date:str,price:float):
     global login
     if not login:
         return home()
-    carriage = control.find_carriag_by_id(int(carriage_id))
-    train = control.find_train_by_train_num(str(train_num))
-    carriage_list = train.get_all_carriage()
-    carriage_num = None
-    for i,car in enumerate(carriage_list):
-        if carriage == car:
-            carriage_num = i+1
-    seats_list = carriage.get_all_seat()
+    data = control.get_seat_data(carriage_id,train_num)
+    carriage = data["carriage"]
+    carriage_num = data["carriage_num"]
+    train = data["train"]
+    seats_list = data["seats_list"]
     return Body(navigation_bar(),
                 Container(H1(f"เลือกที่นั่ง เที่ยวไป "),Hr(),H4(f"ขบวนที่ {train.get_train_number} {train.get_train_type}"),
                     H4(f"{ori} >>> {des}"),
@@ -451,8 +491,7 @@ def get(carriage_id: int,train_num:str,ori:str,des:str,date:str,price:float):
     book_seats_no = [int(seat[5:]) for seat in seat_id_list]
     print(book_seats_no)
     carriage = control.find_carriag_by_id(carriage_id)
-    # departure = control.find_departure_by_id(departure_id)
-    member = control.find_member_by_id(int(control.login_account_no))
+    # member = control.find_member_by_id(int(control.login_account_no))
     return Body(navigation_bar(),
             Container(
                 H3(f'ข้อมูลการจองที่นั่ง ',A(Button("เปลี่ยนแปลงการค้นหา",style="margin-left:50px"),href='/')),Hr(),
@@ -545,7 +584,7 @@ def get():
     booking_list = control.get_booking_member()
     if booking_list == []:
         return Body(navigation_bar(),
-                Container(H1("การซื้อตั๋วทั้งหมด"),Hr(),P("ไม่พบประวัติการซื้อตั๋ว"),
+                Container(H1("การยกเลิกตั๋วโดยสาร"),Hr(),P("ไม่พบประวัติการซื้อตั๋ว"),
                 Style="padding-left:10%;padding-right:10%;"))
     else:
         tickets_list = []
@@ -555,7 +594,7 @@ def get():
         print(tickets_list)
         return Body(navigation_bar(),
                     Container(
-                        H1("การซื้อตั๋วทั้งหมด"),Hr(),
+                        H1("การยกเลิกตั๋วโดยสาร"),Hr(),
                         *[Card(
                             Grid(P(f"ตู้โดยสาร ขบวนที่ {ticket.train_num} ({ticket.car_type})"),P(f"{ticket.origin_station} - {ticket.destination_station}",Style="text-align:right")),
                             Grid(P(f"ชั้น {ticket.car_floor} ประเภท บทศ{ticket.car_name} เลขที่นั่ง {ticket.seat_num}"),P(f"{ticket.date} | {ticket.departure_time} - {ticket.arrival_time}",Style="text-align:right")),

@@ -175,6 +175,22 @@ class Controller:
         for route in self.__route:
             if route_name == route.get_route_name:
                 return route.get_stations_name
+            
+    def get_seat_data(self,carriage_id,train_num):
+        carriage = self.find_carriag_by_id(int(carriage_id))
+        train = self.find_train_by_train_num(str(train_num))
+        carriage_list = train.get_all_carriage()
+        carriage_num = None
+        for i,car in enumerate(carriage_list):
+            if carriage == car:
+                carriage_num = i+1
+        seats_list = carriage.get_all_seat()
+        return {
+            "carriage":carriage,
+            "carriage_num":carriage_num,
+            "train":train,
+            "seats_list":seats_list
+        }
     
 
     def cancel_ticket(self,ticket_id):
@@ -241,6 +257,7 @@ class Controller:
                     date_booked_list = self.find_booking_by_date(date)
                     car_booked_list = [book for book in date_booked_list if book.get_car_id == carriage.get_carriage_id]
                     booked_seat = []
+                    
                     # ตรวจสอบการจองของวันนั้นว่ามีการจองหรือไม่
                     if date_booked_list == [] or car_booked_list == []: # กรณีวันนี้-ตู้นี้ยังไม่มีการจอง
                         carriage.set_available()
